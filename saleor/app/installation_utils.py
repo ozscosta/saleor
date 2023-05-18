@@ -9,7 +9,7 @@ from ..core.utils import build_absolute_uri
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..webhook.models import Webhook, WebhookEvent
-from .manifest_validations import clean_manifest_data
+from .manifest_schema import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
@@ -61,7 +61,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
-    clean_manifest_data(manifest_data, raise_for_saleor_version=True)
+    manifest_data = clean_manifest_data(manifest_data, raise_for_saleor_version=True)
 
     app = App.objects.create(
         name=app_installation.app_name,
@@ -99,7 +99,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             name=webhook["name"],
             is_active=webhook["isActive"],
             target_url=webhook["targetUrl"],
-            subscription_query=webhook["query"],
+            subscription_query=webhook["query"].query,
             custom_headers=webhook.get("customHeaders", None),
         )
         for webhook in manifest_data.get("webhooks", [])
